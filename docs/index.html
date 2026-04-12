@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CRUCIBLE — A vessel for your compute</title>
+  <meta name="description" content="Crucible is a precise command-line instrument for Jarvislabs.ai infrastructure: GPU instances, startup scripts, persistent filesystems, SSH keys, and account info." />
+  <meta property="og:title" content="CRUCIBLE — A vessel for your compute" />
+  <meta property="og:description" content="A precise command-line instrument for Jarvislabs.ai infrastructure." />
+  <meta property="og:type" content="website" />
+  <link rel="icon" type="image/svg+xml" href="crucible-mark.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --paper:        #F1ECE2;
+      --paper-2:      #E8E1D2;
+      --paper-3:      #DDD4BE;
+      --ink:          #14110C;
+      --ink-2:        #3A342A;
+      --muted:        #7A6F5C;
+      --rule:         #C9C0AC;
+      --accent:       #E03E18;
+      --accent-soft:  rgba(224, 62, 24, 0.10);
+      --term-bg:      #16130D;
+      --term-fg:      #EFE6D2;
+      --term-dim:     #8A8068;
+      --serif:        'Newsreader', Georgia, 'Times New Roman', serif;
+      --display:      'Instrument Serif', Georgia, serif;
+      --mono:         'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; scroll-behavior: smooth; }
+    body {
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--serif);
+      font-size: 17px;
+      line-height: 1.65;
+      font-feature-settings: 'kern', 'liga', 'onum';
+      font-variant-numeric: oldstyle-nums;
+      overflow-x: hidden;
+    }
+
+    /* paper grain overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1000;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='7'/><feColorMatrix values='0 0 0 0 0.08  0 0 0 0 0.07  0 0 0 0 0.05  0 0 0 0.55 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+      mix-blend-mode: multiply;
+      opacity: 0.35;
+    }
+
+    a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--accent); transition: background 0.2s; }
+    a:hover { background: var(--accent-soft); }
+
+    ::selection { background: var(--accent); color: var(--paper); }
+
+    /* page wrapper */
+    .page {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 32px clamp(24px, 5vw, 72px) 80px;
+      position: relative;
+    }
+
+    /* ─────────────────────────────────────────────────────────
+       HERO
+       ───────────────────────────────────────────────────────── */
+    .hero {
+      min-height: calc(100vh - 64px);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      margin-bottom: clamp(120px, 16vw, 200px);
+    }
+
+    /* corner registration marks (printing-plate flavor) */
+    .hero::before, .hero::after {
+      content: '';
+      position: absolute;
+      width: 32px;
+      height: 32px;
+      border: 2px solid var(--accent);
+      pointer-events: none;
+    }
+    .hero::before {
+      top: 88px;
+      right: 0;
+      border-left: none;
+      border-bottom: none;
+    }
+    .hero::after {
+      bottom: 24px;
+      left: 0;
+      border-right: none;
+      border-top: none;
+    }
+
+    /* mast = top brand strip */
+    .mast {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 32px;
+      padding-bottom: 26px;
+      border-bottom: 1px solid var(--rule);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      border: none;
+    }
+    .brand:hover { background: none; }
+    .brand-mark {
+      width: 38px;
+      height: 38px;
+      flex-shrink: 0;
+    }
+    .brand-name {
+      font-family: var(--display);
+      font-size: 26px;
+      letter-spacing: 0.08em;
+      color: var(--ink);
+    }
+    .mast nav {
+      display: flex;
+      gap: 28px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .mast nav a {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border: none;
+      padding: 4px 0;
+    }
+    .mast nav a:hover { color: var(--accent); background: none; }
+    .mast-meta {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .mast-meta::before { content: '— '; color: var(--accent); }
+
+    /* hero stage = giant statement + schematic mark */
+    .hero-stage {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1.55fr 1fr;
+      align-items: center;
+      gap: clamp(32px, 5vw, 72px);
+      padding: clamp(48px, 8vw, 104px) 0 clamp(40px, 6vw, 72px);
+      position: relative;
+    }
+    .statement {
+      font-family: var(--display);
+      font-weight: 400;
+      font-size: clamp(96px, 16.5vw, 252px);
+      line-height: 0.82;
+      letter-spacing: -0.045em;
+      color: var(--ink);
+    }
+    .statement .line { display: block; }
+    .statement em {
+      font-style: italic;
+      color: var(--accent);
+    }
+    .stage-mark {
+      width: 100%;
+      max-width: 380px;
+      justify-self: end;
+      align-self: center;
+      display: block;
+    }
+
+    /* hero foot = blurb + install card */
+    .hero-foot {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: clamp(40px, 6vw, 80px);
+      align-items: end;
+      padding-top: clamp(28px, 4vw, 48px);
+      border-top: 1px solid var(--rule);
+    }
+    .hero-blurb {
+      font-family: var(--display);
+      font-style: italic;
+      font-size: clamp(20px, 1.9vw, 26px);
+      line-height: 1.4;
+      color: var(--ink-2);
+      max-width: 38ch;
+    }
+    .hero-blurb strong {
+      color: var(--accent);
+      font-weight: 400;
+      font-style: italic;
+    }
+    .install-block .label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .install-block .label .num { color: var(--accent); }
+
+    /* ─────────────────────────────────────────────────────────
+       TERMINAL BLOCKS
+       ───────────────────────────────────────────────────────── */
+    .terminal {
+      background: var(--term-bg);
+      color: var(--term-fg);
+      font-family: var(--mono);
+      font-size: 13px;
+      line-height: 1.75;
+      padding: 22px 26px 24px;
+      position: relative;
+      box-shadow:
+        0 1px 0 rgba(0,0,0,0.04),
+        0 30px 60px -30px rgba(20, 17, 12, 0.45);
+      overflow-x: auto;
+    }
+    .terminal::before {
+      content: '';
+      position: absolute;
+      top: 12px;
+      left: 14px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow:
+        14px 0 0 #2a2620,
+        28px 0 0 #2a2620;
+    }
+    .terminal pre {
+      margin-top: 14px;
+      white-space: pre;
+      font-family: inherit;
+      font-size: inherit;
+    }
+    .terminal .p { color: var(--accent); user-select: none; }
+    .terminal .c { color: var(--term-dim); font-style: italic; }
+    .terminal .o { color: #C9C0AC; }
+    .terminal .g { color: #9DBE8E; }
+    .terminal .y { color: #E5C158; }
+    .terminal .h { color: #EFE6D2; font-weight: 500; }
+    .terminal .l { color: #6B6353; }
+    .cursor {
+      display: inline-block;
+      width: 0.55em;
+      height: 1em;
+      background: var(--accent);
+      vertical-align: -0.15em;
+      animation: blink 1.05s steps(1) infinite;
+    }
+    @keyframes blink { 0%, 50% { opacity: 1; } 50.01%, 100% { opacity: 0; } }
+
+    /* ─────────────────────────────────────────────────────────
+       SECTIONS
+       ───────────────────────────────────────────────────────── */
+    .section {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: clamp(24px, 4vw, 64px);
+      margin-bottom: clamp(96px, 13vw, 160px);
+      position: relative;
+    }
+    .section .marker {
+      position: sticky;
+      top: 32px;
+      align-self: start;
+    }
+    .marker .num {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      color: var(--accent);
+      text-transform: uppercase;
+      padding-top: 14px;
+      border-top: 1px solid var(--accent);
+      display: block;
+    }
+    .marker .label {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: 4px;
+      display: block;
+    }
+    .section h2 {
+      font-family: var(--display);
+      font-weight: 400;
+      font-size: clamp(40px, 6vw, 72px);
+      line-height: 0.95;
+      letter-spacing: -0.022em;
+      margin-bottom: 36px;
+      max-width: 18ch;
+    }
+    .section h2 em { font-style: italic; color: var(--accent); }
+    .section p { max-width: 60ch; margin-bottom: 22px; color: var(--ink-2); }
+    .section p code { font-family: var(--mono); font-size: 0.86em; padding: 1px 6px; background: var(--paper-2); border: 1px solid var(--rule); color: var(--ink); }
+
+    .lead { font-size: 19px; line-height: 1.6; }
+    .lead::first-letter {
+      font-family: var(--display);
+      font-size: 96px;
+      float: left;
+      line-height: 0.85;
+      padding: 8px 12px 0 0;
+      color: var(--accent);
+      font-weight: 400;
+    }
+
+    /* commands grid */
+    .commands {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1px;
+      background: var(--rule);
+      border: 1px solid var(--rule);
+      margin-top: 16px;
+    }
+    .cmd {
+      background: var(--paper);
+      padding: 32px 30px 36px;
+      transition: background 0.35s ease;
+      position: relative;
+    }
+    .cmd:hover { background: var(--paper-2); }
+    .cmd .group {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      display: block;
+    }
+    .cmd h3 {
+      font-family: var(--display);
+      font-size: 36px;
+      font-weight: 400;
+      line-height: 1;
+      margin-bottom: 22px;
+      letter-spacing: -0.01em;
+    }
+    .cmd ul {
+      list-style: none;
+      font-family: var(--mono);
+      font-size: 12.5px;
+      line-height: 2;
+      color: var(--ink-2);
+    }
+    .cmd ul li::before {
+      content: '→';
+      color: var(--accent);
+      margin-right: 10px;
+      display: inline-block;
+      transition: transform 0.3s;
+    }
+    .cmd:hover ul li::before { transform: translateX(3px); }
+
+    /* exits table */
+    .exits {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 24px;
+      font-family: var(--mono);
+      font-size: 13px;
+    }
+    .exits th, .exits td {
+      text-align: left;
+      padding: 12px 16px 12px 0;
+      border-bottom: 1px solid var(--rule);
+      vertical-align: top;
+    }
+    .exits th {
+      font-weight: 500;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border-bottom: 1px solid var(--ink);
+    }
+    .exits td:first-child {
+      color: var(--accent);
+      font-weight: 600;
+      width: 64px;
+    }
+    .exits td:nth-child(2) {
+      color: var(--ink);
+      width: 220px;
+    }
+    .exits td:last-child {
+      color: var(--ink-2);
+      font-family: var(--serif);
+      font-size: 14px;
+    }
+
+    /* divider with label */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      margin: 16px 0 28px;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--rule);
+    }
+
+    /* footer */
+    footer {
+      margin-top: clamp(64px, 10vw, 120px);
+      padding-top: 28px;
+      border-top: 1px solid var(--rule);
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      flex-wrap: wrap;
+    }
+    footer .foot-brand { display: flex; align-items: center; gap: 10px; color: var(--ink); }
+    footer .foot-brand svg { width: 14px; height: 14px; }
+    footer a { border: none; color: var(--muted); }
+    footer a:hover { color: var(--accent); background: none; }
+
+    /* ─────────────────────────────────────────────────────────
+       MOTION
+       ───────────────────────────────────────────────────────── */
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fade {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    @keyframes draw {
+      from { stroke-dashoffset: 600; }
+      to   { stroke-dashoffset: 0; }
+    }
+    .rise { animation: rise 0.95s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+    .fade { animation: fade 1.4s ease both; }
+    .d1 { animation-delay: 0.10s; }
+    .d2 { animation-delay: 0.22s; }
+    .d3 { animation-delay: 0.36s; }
+    .d4 { animation-delay: 0.50s; }
+
+    .stage-mark .draw-tri {
+      stroke-dasharray: 600;
+      stroke-dashoffset: 600;
+      animation: draw 1.6s cubic-bezier(0.2, 0.7, 0.2, 1) 0.3s forwards;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .rise, .fade { animation: none; }
+      .cursor { animation: none; }
+      .stage-mark .draw-tri { stroke-dashoffset: 0; animation: none; }
+    }
+
+    /* ─────────────────────────────────────────────────────────
+       RESPONSIVE
+       ───────────────────────────────────────────────────────── */
+    @media (max-width: 1100px) {
+      .mast nav { gap: 18px; }
+    }
+    @media (max-width: 960px) {
+      .mast { grid-template-columns: 1fr auto; gap: 16px; }
+      .mast nav { display: none; }
+      .hero-stage { grid-template-columns: 1fr; gap: 32px; padding-top: 56px; }
+      .stage-mark { max-width: 220px; justify-self: start; order: 2; }
+      .statement { order: 1; }
+      .hero-foot { grid-template-columns: 1fr; gap: 32px; }
+      .section { grid-template-columns: 1fr; gap: 12px; }
+      .section .marker { position: static; }
+      .commands { grid-template-columns: 1fr; }
+      .lead::first-letter { font-size: 72px; }
+      .hero::before { top: 64px; }
+    }
+    @media (max-width: 520px) {
+      .statement { font-size: 84px; }
+      .terminal { font-size: 11.5px; padding: 22px 18px 22px; }
+      .install-block .label { font-size: 9px; }
+      .brand-name { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page" id="top">
+
+    <!-- ═══════════════════════════════════════════════════════
+         HERO
+         ═══════════════════════════════════════════════════════ -->
+    <section class="hero">
+
+      <header class="mast rise">
+        <a class="brand" href="#top" aria-label="Crucible — home">
+          <svg class="brand-mark" viewBox="0 0 140 140" fill="none" aria-hidden="true">
+            <path d="M70 22 L118 102 L22 102 Z" stroke="#E03E18" stroke-width="9" stroke-linejoin="miter"/>
+            <rect x="14" y="112" width="112" height="9" fill="#14110C"/>
+          </svg>
+          <span class="brand-name">CRUCIBLE</span>
+        </a>
+        <nav>
+          <a href="#overview">overview</a>
+          <a href="#configure">configure</a>
+          <a href="#commands">commands</a>
+          <a href="#session">session</a>
+          <a href="#exits">exits</a>
+        </nav>
+        <div class="mast-meta">v0.1.0</div>
+      </header>
+
+      <div class="hero-stage">
+        <h1 class="statement">
+          <span class="line rise d1">A&nbsp;vessel</span>
+          <span class="line rise d2">for&nbsp;your</span>
+          <span class="line rise d3"><em>compute.</em></span>
+        </h1>
+
+        <svg class="stage-mark fade d2" viewBox="0 0 360 360" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <!-- corner registration brackets -->
+          <g stroke="#14110C" stroke-width="1.5" fill="none">
+            <path d="M 18 36 L 18 18 L 36 18"/>
+            <path d="M 324 18 L 342 18 L 342 36"/>
+            <path d="M 18 324 L 18 342 L 36 342"/>
+            <path d="M 324 342 L 342 342 L 342 324"/>
+          </g>
+
+          <!-- center vertical crosshair -->
+          <line x1="180" y1="58" x2="180" y2="296" stroke="#C9C0AC" stroke-width="0.75" stroke-dasharray="2 5"/>
+          <!-- center horizontal crosshair -->
+          <line x1="48" y1="180" x2="312" y2="180" stroke="#C9C0AC" stroke-width="0.5" stroke-dasharray="2 5"/>
+
+          <!-- main fire triangle (the alchemical mark) -->
+          <path class="draw-tri" d="M 180 88 L 282 252 L 78 252 Z"
+                stroke="#E03E18" stroke-width="6"
+                stroke-linejoin="miter" fill="none"/>
+
+          <!-- crucible rim/floor bar -->
+          <rect x="58" y="264" width="244" height="9" fill="#14110C"/>
+
+          <!-- apex marker -->
+          <circle cx="180" cy="88" r="3.5" fill="#E03E18"/>
+          <!-- base markers -->
+          <circle cx="78" cy="252" r="2.5" fill="#14110C"/>
+          <circle cx="282" cy="252" r="2.5" fill="#14110C"/>
+
+          <!-- bar tick marks -->
+          <g stroke="#7A6F5C" stroke-width="1">
+            <line x1="58"  y1="282" x2="58"  y2="290"/>
+            <line x1="119" y1="282" x2="119" y2="288"/>
+            <line x1="180" y1="282" x2="180" y2="292"/>
+            <line x1="241" y1="282" x2="241" y2="288"/>
+            <line x1="302" y1="282" x2="302" y2="290"/>
+          </g>
+
+          <!-- labels (mono, muted) -->
+          <text x="180" y="76" font-family="JetBrains Mono, ui-monospace, monospace" font-size="9" fill="#7A6F5C" text-anchor="middle" letter-spacing="2">FIG. I</text>
+          <text x="294" y="180" font-family="JetBrains Mono, ui-monospace, monospace" font-size="8" fill="#7A6F5C" letter-spacing="2">FIRE</text>
+          <text x="305" y="270" font-family="JetBrains Mono, ui-monospace, monospace" font-size="8" fill="#7A6F5C" letter-spacing="2">RIM</text>
+          <text x="180" y="316" font-family="JetBrains Mono, ui-monospace, monospace" font-size="8" fill="#7A6F5C" text-anchor="middle" letter-spacing="3">— THE CRUCIBLE MARK —</text>
+        </svg>
+      </div>
+
+      <div class="hero-foot rise d4">
+        <p class="hero-blurb">
+          A precise command-line instrument for <strong>Jarvislabs.ai</strong>. Stoke GPUs, tend filesystems, banish runaway bills &mdash; one verb per operation, one file of Python.
+        </p>
+        <div class="install-block" id="install">
+          <div class="label"><span>↳ Install</span><span class="num">§00</span></div>
+          <div class="terminal" aria-label="install commands">
+<pre><span class="p">$</span> git clone github.com/JimothyJohn/jarvislabs-tool
+<span class="p">$</span> uv pip install -e .
+<span class="c"># installs one console script: jltool</span>
+<span class="p">$</span> jltool ls<span class="cursor"></span></pre>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════
+         §01 OVERVIEW
+         ═══════════════════════════════════════════════════════ -->
+    <section class="section" id="overview">
+      <div class="marker">
+        <span class="num">§01</span>
+        <span class="label">Overview</span>
+      </div>
+      <div>
+        <h2>A small <em>vessel</em> that does one thing well.</h2>
+        <p class="lead">Crucible wraps the official jarvislabs Python SDK behind a Typer command-line interface, distributed as a single console script: <code>jltool</code>. It manages GPU instances, startup scripts, persistent filesystems, SSH keys, and account information &mdash; every operation a single command, every command a thin, predictable surface over the underlying API.</p>
+        <p>The entire CLI lives in a single file: <code>jltool/cli.py</code>. There is no global state, no configuration class, no plugin system. Each subcommand opens a client, makes one call, prints a Rich-formatted table, and exits.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════
+         §02 CONFIGURE
+         ═══════════════════════════════════════════════════════ -->
+    <section class="section" id="configure">
+      <div class="marker">
+        <span class="num">§02</span>
+        <span class="label">Configure</span>
+      </div>
+      <div>
+        <h2>One env file. <em>Sensible defaults.</em></h2>
+        <p>Place a <code>.env</code> in the project root or any parent directory. <code>JL_API_KEY</code> is the only required value &mdash; the rest are optional defaults applied when the matching flag is omitted on <code>jltool instances create</code>.</p>
+        <div class="terminal" style="margin-top:24px" aria-label="env file example">
+<pre><span class="c"># Required &mdash; get yours at jarvislabs.ai/settings/api-keys</span>
+<span class="h">JL_API_KEY</span>=<span class="o">jl_xxxxxxxxxxxxxxxxxxxxxxxxx</span>
+
+<span class="c"># Defaults for `jltool instances create`</span>
+<span class="h">JL_DEFAULT_GPU_TYPE</span>=<span class="o">A100</span>
+<span class="h">JL_DEFAULT_NUM_GPUS</span>=<span class="o">1</span>
+<span class="h">JL_DEFAULT_TEMPLATE</span>=<span class="o">pytorch</span>
+<span class="h">JL_DEFAULT_STORAGE</span>=<span class="o">40</span>
+<span class="h">JL_DEFAULT_HTTP_PORTS</span>=<span class="o">7860,8080</span>
+
+<span class="c"># Optional &mdash; defaults for attached resources</span>
+<span class="h">JL_DEFAULT_SCRIPT_ID</span>=<span class="o"></span>
+<span class="h">JL_DEFAULT_FS_ID</span>=<span class="o"></span></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════
+         §03 COMMANDS
+         ═══════════════════════════════════════════════════════ -->
+    <section class="section" id="commands">
+      <div class="marker">
+        <span class="num">§03</span>
+        <span class="label">Commands</span>
+      </div>
+      <div>
+        <h2>Five groups. <em>Twenty&#8209;something verbs.</em></h2>
+        <p>Run <code>jltool --help</code> for the full reference. Each group is a <code>typer.Typer</code> sub-app mounted under the root command.</p>
+        <div class="commands">
+          <article class="cmd">
+            <span class="group">jltool instances</span>
+            <h3>Compute</h3>
+            <ul>
+              <li>list &middot; get &middot; create</li>
+              <li>pause &middot; resume &middot; rename</li>
+              <li>destroy &middot; pause-all</li>
+            </ul>
+          </article>
+          <article class="cmd">
+            <span class="group">jltool fs</span>
+            <h3>Filesystems</h3>
+            <ul>
+              <li>list &middot; create</li>
+              <li>edit &middot; remove</li>
+            </ul>
+          </article>
+          <article class="cmd">
+            <span class="group">jltool scripts</span>
+            <h3>Startup scripts</h3>
+            <ul>
+              <li>list &middot; add</li>
+              <li>update &middot; remove</li>
+            </ul>
+          </article>
+          <article class="cmd">
+            <span class="group">jltool keys</span>
+            <h3>SSH keys</h3>
+            <ul>
+              <li>list &middot; add &middot; remove</li>
+            </ul>
+          </article>
+          <article class="cmd">
+            <span class="group">jltool account</span>
+            <h3>Account</h3>
+            <ul>
+              <li>balance &middot; metrics</li>
+              <li>gpus &middot; templates</li>
+            </ul>
+          </article>
+          <article class="cmd">
+            <span class="group">shortcuts</span>
+            <h3>Top&#8209;level</h3>
+            <ul>
+              <li>jltool ls &nbsp; → instances list</li>
+              <li>jltool balance → account balance</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════
+         §04 SESSION
+         ═══════════════════════════════════════════════════════ -->
+    <section class="section" id="session">
+      <div class="marker">
+        <span class="num">§04</span>
+        <span class="label">Session</span>
+      </div>
+      <div>
+        <h2>What it <em>looks like</em> at the prompt.</h2>
+        <p>Output is rendered with <a href="https://rich.readthedocs.io/" target="_blank" rel="noopener">Rich</a>. Tables for lists, single&#8209;column field maps for <code>get</code>, terse one&#8209;line confirmations for mutations.</p>
+        <div class="divider">a typical morning</div>
+        <div class="terminal" aria-label="example session">
+<pre><span class="p">$</span> jltool account gpus
+<span class="l">                       GPU Availability                       </span>
+<span class="o">┏━━━━━━━┳━━━━━━━━━┳━━━━━━┳━━━━━━━━━━┓</span>
+<span class="o">┃</span> <span class="h">GPU  </span> <span class="o">┃</span> <span class="h">Region </span> <span class="o">┃</span> <span class="h">Free</span> <span class="o">┃</span> <span class="h">Price/hr</span> <span class="o">┃</span>
+<span class="o">┡━━━━━━━╇━━━━━━━━━╇━━━━━━╇━━━━━━━━━━┩</span>
+<span class="o">│</span> A100  <span class="o">│</span> us-east <span class="o">│</span>  12  <span class="o">│</span>   1.29   <span class="o">│</span>
+<span class="o">│</span> H100  <span class="o">│</span> eu-west <span class="o">│</span>   4  <span class="o">│</span>   2.99   <span class="o">│</span>
+<span class="o">│</span> L4    <span class="o">│</span> us-east <span class="o">│</span>  31  <span class="o">│</span>   0.49   <span class="o">│</span>
+<span class="o">└───────┴─────────┴──────┴──────────┘</span>
+
+<span class="p">$</span> jltool instances create -g A100 -n 1 -t pytorch -s 80 --name lab
+<span class="c">Creating instance: gpu_type=A100, num_gpus=1, template=pytorch, storage=80, name=lab</span>
+<span class="g">✓ Created</span> machine_id=<span class="y">48201</span> name=lab
+  ssh: ssh -p 11023 root@a100.jarvislabs.ai
+  url: https://lab-48201.jarvislabs.ai
+
+<span class="p">$</span> jltool instances pause-all -y
+  <span class="g">paused</span> 48201 (lab)<span class="cursor"></span></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════
+         §05 EXIT CODES
+         ═══════════════════════════════════════════════════════ -->
+    <section class="section" id="exits">
+      <div class="marker">
+        <span class="num">§05</span>
+        <span class="label">Exit codes</span>
+      </div>
+      <div>
+        <h2>Errors map to <em>exit codes.</em></h2>
+        <p>Every SDK exception is translated to a distinct exit code so commands compose cleanly in shell scripts and CI pipelines.</p>
+        <table class="exits">
+          <thead>
+            <tr><th>Code</th><th>Class</th><th>Meaning</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>0</td><td>—</td><td>Success.</td></tr>
+            <tr><td>1</td><td>JarvislabsError</td><td>Generic SDK failure that did not match a more specific class.</td></tr>
+            <tr><td>2</td><td>AuthError</td><td>Missing or invalid token. Set <code>JL_API_KEY</code> in your environment or .env.</td></tr>
+            <tr><td>3</td><td>NotFoundError</td><td>The requested resource (instance, script, fs, key) does not exist.</td></tr>
+            <tr><td>4</td><td>ValidationError</td><td>Invalid input — usually a missing or out-of-range flag.</td></tr>
+            <tr><td>5</td><td>APIError</td><td>Upstream API returned a non-2xx status. The HTTP code is printed to stderr.</td></tr>
+            <tr><td>130</td><td>—</td><td>Interrupted by Ctrl-C.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer>
+      <span class="foot-brand">
+        <svg viewBox="0 0 140 140" fill="none" aria-hidden="true">
+          <path d="M70 22 L118 102 L22 102 Z" stroke="#E03E18" stroke-width="14" stroke-linejoin="miter"/>
+          <rect x="14" y="112" width="112" height="14" fill="#14110C"/>
+        </svg>
+        Crucible · v0.1.0
+      </span>
+      <span>built on jarvislabs · typer · rich · python-dotenv</span>
+      <span><a href="https://github.com/JimothyJohn/jarvislabs-tool">source ↗</a></span>
+    </footer>
+
+  </div>
+</body>
+</html>
