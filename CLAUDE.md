@@ -270,3 +270,73 @@ cp .env.example .env  # then edit JL_API_KEY
 .venv/bin/pytest      # full suite, runs in <1s
 .venv/bin/jltool account doctor
 ```
+
+---
+
+## Packaged as a Claude Code skill
+
+The repo ships an on-demand skill at `.claude/skills/jarvislabs/`:
+
+```
+.claude/skills/jarvislabs/
+├── SKILL.md          # frontmatter + concise trigger instructions
+├── REFERENCE.md      # full command surface, every flag, exit codes
+├── workflows.md      # autonomous-workflow recipe book
+└── scripts/
+    └── setup.sh      # idempotent installer + doctor preflight
+```
+
+Project-level: any Claude Code session opened in this repo auto-discovers
+the skill from `.claude/skills/jarvislabs/SKILL.md`. No install needed.
+
+User-level (use across all your projects):
+
+```bash
+mkdir -p ~/.claude/skills
+ln -s "$(pwd)/.claude/skills/jarvislabs" ~/.claude/skills/jarvislabs
+# or copy if you prefer a snapshot:
+cp -r .claude/skills/jarvislabs ~/.claude/skills/jarvislabs
+```
+
+The skill description triggers on any mention of Jarvislabs.ai, GPU
+instances, or `jltool`. When activated, Claude reads `SKILL.md`, then pulls
+in `REFERENCE.md` or `workflows.md` on demand (progressive disclosure —
+keeps SKILL.md under 200 lines).
+
+`tests/test_skill_manifest.py` locks the manifest valid: frontmatter parses,
+`name` is kebab-case + ≤64 chars, `description` ≤250 chars, every referenced
+sibling file exists, `setup.sh` is executable + has the strict-mode pragma,
+`REFERENCE.md` documents every namespace, and `workflows.md` includes the
+doctor-preflight pattern. If a future change breaks any of these, the test
+fails before the skill silently stops loading.
+
+### Portability to other agent runtimes (e.g. OpenClaw)
+
+The skill directory is intentionally vanilla: plain markdown files plus a
+POSIX shell script. Nothing in the skill depends on Claude Code internals.
+Any agent runtime that can:
+
+1. Read a markdown file with YAML frontmatter as a system-prompt fragment, and
+2. Execute bash commands,
+
+can drop `.claude/skills/jarvislabs/` into its own skill directory and use it
+as-is. The progressive-disclosure pattern (SKILL.md → REFERENCE.md →
+workflows.md) is just file references; no special tooling required.
+
+For OpenClaw or any other runtime, the integration shape is:
+
+```python
+# pseudocode for any agent runtime
+skill = load_markdown_with_frontmatter(".claude/skills/jarvislabs/SKILL.md")
+register_capability(
+    name=skill.frontmatter["name"],
+    description=skill.frontmatter["description"],
+    body=skill.body,
+    workdir=".claude/skills/jarvislabs",  # so ${CLAUDE_SKILL_DIR} resolves
+)
+```
+
+The skill expects `${CLAUDE_SKILL_DIR}` to resolve to its own directory (so
+references to `${CLAUDE_SKILL_DIR}/REFERENCE.md` work). If your runtime uses
+a different variable, either set it before invoking the skill or do a
+search-and-replace pass on load.

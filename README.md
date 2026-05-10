@@ -1,11 +1,11 @@
 <div align="center">
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/crucible-mark-dark.svg">
-  <img src="docs/crucible-mark.svg" alt="Crucible" width="140">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/jltool-mark-dark.svg">
+  <img src="docs/jltool-mark.svg" alt="jltool" width="140">
 </picture>
 
-# CRUCIBLE
+# jltool
 
 #### *A vessel for your compute.*
 
@@ -24,7 +24,7 @@ $ jltool instances create -g A100 -n 1 -t pytorch -s 80 --name lab
 $ jltool instances pause-all -y
 ```
 
-Crucible wraps the official `jarvislabs` Python SDK behind a [Typer](https://typer.tiangolo.com/) CLI and exposes GPU instances, startup scripts, persistent filesystems, SSH keys, and account information as a single, predictable surface. The whole CLI lives in one file (`jltool/cli.py`) and ships as one console script (`jltool`).
+jltool wraps the official `jarvislabs` Python SDK behind a [Typer](https://typer.tiangolo.com/) CLI and exposes GPU instances, startup scripts, persistent filesystems, SSH keys, and account information as a single, predictable surface. The whole CLI lives in one file (`jltool/cli.py`) and ships as one console script (`jltool`).
 
 ## Install
 
@@ -40,7 +40,7 @@ The package installs a single console script: **`jltool`**.
 
 ## Configure
 
-Crucible reads a `.env` file from the current directory (walking upward) **before** initializing the SDK. Copy the example and fill in your token:
+jltool reads a `.env` file from the current directory (walking upward) **before** initializing the SDK. Copy the example and fill in your token:
 
 ```sh
 cp .env.example .env
@@ -172,8 +172,8 @@ jltool/
   cli.py              # the entire CLI lives here
 docs/
   index.html          # GitHub Pages site
-  crucible-mark.svg   # logomark (light theme)
-  crucible-mark-dark.svg
+  jltool-mark.svg     # logomark (light theme)
+  jltool-mark-dark.svg
 pyproject.toml
 .env.example
 ```

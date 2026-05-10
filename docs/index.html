@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CRUCIBLE — A vessel for your compute</title>
-  <meta name="description" content="Crucible is a precise command-line instrument for Jarvislabs.ai infrastructure: GPU instances, startup scripts, persistent filesystems, SSH keys, and account info." />
-  <meta property="og:title" content="CRUCIBLE — A vessel for your compute" />
+  <title>jltool — A vessel for your compute</title>
+  <meta name="description" content="jltool is a precise command-line instrument for Jarvislabs.ai infrastructure: GPU instances, startup scripts, persistent filesystems, SSH keys, and account info." />
+  <meta property="og:title" content="jltool — A vessel for your compute" />
   <meta property="og:description" content="A precise command-line instrument for Jarvislabs.ai infrastructure." />
   <meta property="og:type" content="website" />
-  <link rel="icon" type="image/svg+xml" href="crucible-mark.svg">
+  <link rel="icon" type="image/svg+xml" href="jltool-mark.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -125,10 +125,12 @@
     }
     .brand-name {
       font-family: var(--display);
-      font-size: 26px;
-      letter-spacing: 0.08em;
+      font-size: 30px;
+      letter-spacing: -0.005em;
       color: var(--ink);
+      line-height: 1;
     }
+    .brand-name em { font-style: italic; color: var(--accent); }
     .mast nav {
       display: flex;
       gap: 28px;
@@ -524,12 +526,12 @@
     <section class="hero">
 
       <header class="mast rise">
-        <a class="brand" href="#top" aria-label="Crucible — home">
+        <a class="brand" href="#top" aria-label="jltool — home">
           <svg class="brand-mark" viewBox="0 0 140 140" fill="none" aria-hidden="true">
             <path d="M70 22 L118 102 L22 102 Z" stroke="#E03E18" stroke-width="9" stroke-linejoin="miter"/>
             <rect x="14" y="112" width="112" height="9" fill="#14110C"/>
           </svg>
-          <span class="brand-name">CRUCIBLE</span>
+          <span class="brand-name">jl<em>tool</em></span>
         </a>
         <nav>
           <a href="#overview">overview</a>
@@ -589,7 +591,7 @@
           <text x="180" y="76" font-family="JetBrains Mono, ui-monospace, monospace" font-size="9" fill="#7A6F5C" text-anchor="middle" letter-spacing="2">FIG. I</text>
           <text x="294" y="180" font-family="JetBrains Mono, ui-monospace, monospace" font-size="8" fill="#7A6F5C" letter-spacing="2">FIRE</text>
           <text x="305" y="270" font-family="JetBrains Mono, ui-monospace, monospace" font-size="8" fill="#7A6F5C" letter-spacing="2">RIM</text>
-          <text x="180" y="316" font-family="JetBrains Mono, ui-monospace, monospace" font-size="8" fill="#7A6F5C" text-anchor="middle" letter-spacing="3">— THE CRUCIBLE MARK —</text>
+          <text x="180" y="316" font-family="JetBrains Mono, ui-monospace, monospace" font-size="8" fill="#7A6F5C" text-anchor="middle" letter-spacing="3">— THE JLTOOL MARK —</text>
         </svg>
       </div>
 
@@ -620,7 +622,7 @@
       </div>
       <div>
         <h2>A small <em>vessel</em> that does one thing well.</h2>
-        <p class="lead">Crucible wraps the official jarvislabs Python SDK behind a Typer command-line interface, distributed as a single console script: <code>jltool</code>. It manages GPU instances, startup scripts, persistent filesystems, SSH keys, and account information &mdash; every operation a single command, every command a thin, predictable surface over the underlying API.</p>
+        <p class="lead">jltool wraps the official jarvislabs Python SDK behind a Typer command-line interface and ships as a single console script. It manages GPU instances, startup scripts, persistent filesystems, SSH keys, and account information &mdash; every operation a single command, every command a thin, predictable surface over the underlying API.</p>
         <p>The entire CLI lives in a single file: <code>jltool/cli.py</code>. There is no global state, no configuration class, no plugin system. Each subcommand opens a client, makes one call, prints a Rich-formatted table, and exits.</p>
       </div>
     </section>
@@ -787,7 +789,7 @@
           <path d="M70 22 L118 102 L22 102 Z" stroke="#E03E18" stroke-width="14" stroke-linejoin="miter"/>
           <rect x="14" y="112" width="112" height="14" fill="#14110C"/>
         </svg>
-        Crucible · v0.1.0
+        jltool · v0.1.0
       </span>
       <span>built on jarvislabs · typer · rich · python-dotenv</span>
       <span><a href="https://github.com/JimothyJohn/jarvislabs-tool">source ↗</a></span>
