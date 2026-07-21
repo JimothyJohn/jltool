@@ -1,0 +1,33 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: dev
+    schedule:
+      interval: weekly
+      day: monday
+    labels:
+      - dependencies
+      - automated
+    groups:
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
+
+  # pyproject.toml only — uv.lock is gitignored in this repo, so the pip
+  # ecosystem (PEP 621 support) is used instead of uv.
+  - package-ecosystem: pip
+    directory: /
+    target-branch: dev
+    schedule:
+      interval: weekly
+      day: monday
+    labels:
+      - dependencies
+      - automated
+    groups:
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
