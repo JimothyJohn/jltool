@@ -24,4 +24,11 @@ jobs:
       - name: Sync
         run: uv sync
       - name: Tests
+        env:
+          # Typer force-enables Rich color when GITHUB_ACTIONS is set, which
+          # splits option names across ANSI spans and breaks the plain-text
+          # substring assertions in tests/test_sdk_coverage.py. This is
+          # Typer's own escape hatch (typer/rich_utils.py) and matches the
+          # repo's colorless-test intent (pytest addopts --color=no).
+          _TYPER_FORCE_DISABLE_TERMINAL: "1"
         run: uv run pytest -q
