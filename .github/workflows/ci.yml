@@ -1,0 +1,27 @@
+name: CI
+
+# Test suite for every PR and for pushes to the long-lived branches.
+# Note: no uv.lock is tracked (it is gitignored), so `uv sync` resolves
+# dependencies fresh on every run. Ruff is intentionally absent — it is not
+# a dependency of this project and the codebase is not ruff-formatted.
+
+on:
+  push:
+    branches: [master, dev]
+  pull_request:
+
+permissions: {}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+      - name: Sync
+        run: uv sync
+      - name: Tests
+        run: uv run pytest -q
