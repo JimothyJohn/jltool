@@ -5,7 +5,7 @@ description = "CLI for managing Jarvislabs.ai infrastructure via the Jarvislabs 
 requires-python = ">=3.10"
 dependencies = [
     "jarvislabs>=0.2.8,<0.2.13",
-    "typer>=0.27.1",
+    "typer>=0.27.2",
     "python-dotenv>=1.2.3",
     "rich>=15.0.0",
 ]
